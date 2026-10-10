@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Icon for the thingino_cam integration. Original, hand-written artwork (not Thingino's logo): "thingino"
+     set as three rows, thi / ngi / no, of light monoline letters drawn as strokes (no font), in grey with
+     the middle row in orange. The letters are shared with logo.svg. Render with brand-src/render.sh. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Letters, origin at the centre of the baseline. x-height 88, ascender 140, stroke 16. -->
+    <path id="t" d="M-8 -126 V-22 C-8 -7 2 0 16 0 H28 M-34 -88 H28"/>
+    <path id="h" d="M-38 -140 V0 M-38 -48 A38 40 0 0 1 38 -48 V0"/>
+    <path id="n" d="M-38 -88 V0 M-38 -48 A38 40 0 0 1 38 -48 V0"/>
+    <path id="i" d="M0 -88 V0 M0 -124 V-124"/>
+    <path id="o" d="M0 -88 A44 44 0 0 1 0 0 A44 44 0 0 1 0 -88 Z"/>
+    <path id="g" d="M0 -88 A42 44 0 0 1 0 0 A42 44 0 0 1 0 -88 Z M42 -88 V-4 C42 24 26 38 0 38 C-16 38 -28 32 -34 24"/>
+  </defs>
+
+  <g transform="translate(256 256) scale(0.88) translate(-256 -248)" fill="none" stroke-width="16"
+     stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#b3b3b3">
+      <use href="#t" x="116" y="164"/>
+      <use href="#h" x="256" y="164"/>
+      <use href="#i" x="396" y="164"/>
+    </g>
+    <g stroke="#ff8800">
+      <use href="#n" x="116" y="316"/>
+      <use href="#g" x="256" y="316"/>
+      <use href="#i" x="396" y="316"/>
+    </g>
+    <g stroke="#b3b3b3">
+      <use href="#n" x="186" y="472"/>
+      <use href="#o" x="326" y="472"/>
+    </g>
+  </g>
+</svg>

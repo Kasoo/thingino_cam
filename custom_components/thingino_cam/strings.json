@@ -1,0 +1,180 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Thingino camera",
+        "description": "The camera agent API is Thingino's API for remote clients such as hubs, and is the recommended way to connect. However, it needs a one-off setup over SSH.\n\nConnecting via the web UI avoids SSH, but requires a web UI API key with full access to the camera, and newer firmware.",
+        "menu_options": {
+          "direct": "Directly via the camera agent API (requires SSH setup)",
+          "webui": "Proxied via the camera's web UI"
+        }
+      },
+      "webui": {
+        "title": "Camera web UI",
+        "description": "Home Assistant reaches the camera agent through the proxy built into the camera's web UI. Use this if you can't log in to the camera's shell. Otherwise the direct mode is recommended.\n\nYou'll find the API key in the camera's web UI on the **Web Interface** settings page, under **API Access**. If none is shown, press **Generate New Key**.\n\nRequires {min_firmware} or later.",
+        "data": {
+          "host": "Host",
+          "api_key": "API key",
+          "port": "Web UI HTTPS port",
+          "name": "Name"
+        },
+        "data_description": {
+          "host": "The camera's hostname or IP address",
+          "name": "Device name in Home Assistant; leave blank to use the camera's hostname"
+        }
+      },
+      "direct": {
+        "title": "Camera agent",
+        "description": "Home Assistant connects to the camera agent, Thingino's API for remote clients, on its own TLS port. The agent is local-only by default, so expose it first. Log in to the camera as root and run:\n\n```\njct /etc/thingino.json set agent.listen \"::\"\njct /etc/thingino.json set agent.tls true\n/etc/init.d/S95agent restart\njct /etc/thingino.json get agent.token\n```\n\nUse `0.0.0.0` instead of `::` for IPv4 only. The last command prints the token, which the agent generates on this first start. You can also see the token while logged in to the camera's web UI, by opening `/x/json-agent-token.cgi` on the camera (for example `https://camera.example/x/json-agent-token.cgi`).\n\nThe agent uses the camera's self-signed certificate. Home Assistant shows its fingerprint on the next screen; confirm it to pin it. Only that certificate is then accepted. If it changes (e.g. after a full firmware flash), you'll be asked to confirm the new one.\n\nA client certificate (mTLS) is optional and needs firmware with agent client-certificate support (`agent.client_ca`, `agent.client_cn`). Leave both fields blank otherwise.",
+        "data": {
+          "host": "Host",
+          "token": "Agent token",
+          "port": "Agent port",
+          "client_cert": "Client certificate (PEM)",
+          "client_key": "Client private key (PEM)",
+          "name": "Name"
+        },
+        "data_description": {
+          "client_cert": "Optional. Path relative to the Home Assistant config directory",
+          "client_key": "Optional. Path relative to the Home Assistant config directory",
+          "name": "Device name in Home Assistant; leave blank to use the camera's hostname"
+        }
+      },
+      "confirm_cert": {
+        "title": "Trust this camera's certificate?",
+        "description": "The camera at {host} uses a certificate that isn't publicly trusted. This is normal: Thingino generates its own.\n\n**SHA-256:** `{fingerprint}`\n**Issued to:** {subject}\n\nIf you want to check it, your browser shows the certificate's fingerprint when you open the camera's web UI. Submit to trust this exact certificate. Home Assistant will refuse any other one from this camera, and will ask you again if the camera's certificate changes (for example after a full firmware flash)."
+      },
+      "rtsp": {
+        "title": "Video stream login",
+        "description": "The camera's RTSP username and password. You'll find them in the camera's web UI under **Streamer → Streamer config**, in the `rtsp` section. Thingino's default is thingino / thingino.",
+        "data": {
+          "rtsp_username": "RTSP username",
+          "rtsp_password": "RTSP password",
+          "rtsp_port": "RTSPS port (fallback)"
+        },
+        "data_description": {
+          "rtsp_port": "Only used if the camera doesn't report its stream URL"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate the Thingino camera",
+        "description": "The camera at {host} rejected Home Assistant's credentials, or presented a different certificate. A full firmware flash replaces the web UI's API key (Web Interface settings, API Access) and can replace the certificate.",
+        "data": {
+          "api_key": "API key",
+          "token": "Agent token",
+          "client_cert": "Client certificate (PEM)",
+          "client_key": "Client private key (PEM)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the camera.",
+      "invalid_auth": "The camera rejected the agent token or the client certificate.",
+      "invalid_api_key": "The camera rejected the API key. Check it on the camera's Web Interface settings page, under API Access. Firmware older than {min_firmware} rejects every key in this mode.",
+      "bad_certificate": "Cannot load the client certificate or key file.",
+      "firmware_too_old": "This camera runs firmware older than {min_firmware}. Update the firmware, or use the direct agent mode.",
+      "no_events": "The camera's web UI doesn't pass on the agent's event stream (motion and other live updates). Update to {min_firmware} or later.",
+      "cert_name_mismatch": "The camera has a publicly trusted certificate, but for a different name. Use the hostname the certificate was issued for, not an IP address or another name."
+    },
+    "abort": {
+      "already_configured": "This camera is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "unique_id_mismatch": "That is a different camera."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "motion": {
+        "name": "Motion"
+      },
+      "streamer_problem": {
+        "name": "Streamer"
+      },
+      "event_stream": {
+        "name": "Event stream"
+      }
+    },
+    "button": {
+      "reboot": {
+        "name": "Reboot"
+      },
+      "restart_streamer": {
+        "name": "Restart streamer"
+      }
+    },
+    "number": {
+      "brightness": {
+        "name": "Brightness"
+      },
+      "contrast": {
+        "name": "Contrast"
+      },
+      "saturation": {
+        "name": "Saturation"
+      },
+      "sharpness": {
+        "name": "Sharpness"
+      },
+      "motion_sensitivity": {
+        "name": "Motion sensitivity"
+      },
+      "motion_cooldown": {
+        "name": "Motion cooldown"
+      }
+    },
+    "select": {
+      "daynight_mode": {
+        "name": "Day/night mode",
+        "state": {
+          "auto": "Auto",
+          "day": "Day",
+          "night": "Night"
+        }
+      }
+    },
+    "sensor": {
+      "daynight_running": {
+        "name": "Day/night state",
+        "state": {
+          "day": "Day",
+          "night": "Night"
+        }
+      },
+      "scene_brightness": {
+        "name": "Scene brightness"
+      },
+      "boot_time": {
+        "name": "Last boot"
+      },
+      "load_average": {
+        "name": "Load average"
+      },
+      "memory_available": {
+        "name": "Memory available"
+      },
+      "ip_address": {
+        "name": "IP address"
+      }
+    },
+    "switch": {
+      "motion_detection": {
+        "name": "Motion detection"
+      },
+      "privacy": {
+        "name": "Privacy mode"
+      },
+      "microphone": {
+        "name": "Microphone"
+      },
+      "speaker": {
+        "name": "Speaker"
+      },
+      "flip_horizontal": {
+        "name": "Flip horizontally"
+      },
+      "flip_vertical": {
+        "name": "Flip vertically"
+      }
+    }
+  }
+}

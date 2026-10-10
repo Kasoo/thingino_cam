@@ -1,0 +1,30 @@
+{
+  "entity": {
+    "binary_sensor": {"event_stream": {"default": "mdi:lan-connect"}},
+    "button": {"restart_streamer": {"default": "mdi:video-reload"}},
+    "number": {
+      "brightness": {"default": "mdi:brightness-6"},
+      "contrast": {"default": "mdi:contrast-box"},
+      "saturation": {"default": "mdi:palette"},
+      "sharpness": {"default": "mdi:image-filter-center-focus"},
+      "motion_sensitivity": {"default": "mdi:motion-sensor"},
+      "motion_cooldown": {"default": "mdi:timer-sand"}
+    },
+    "select": {"daynight_mode": {"default": "mdi:theme-light-dark"}},
+    "sensor": {
+      "daynight_running": {"default": "mdi:theme-light-dark"},
+      "scene_brightness": {"default": "mdi:white-balance-sunny"},
+      "load_average": {"default": "mdi:chip"},
+      "memory_available": {"default": "mdi:memory"},
+      "ip_address": {"default": "mdi:ip-network"}
+    },
+    "switch": {
+      "motion_detection": {"default": "mdi:motion-sensor", "state": {"off": "mdi:motion-sensor-off"}},
+      "privacy": {"default": "mdi:eye-off", "state": {"off": "mdi:eye"}},
+      "microphone": {"default": "mdi:microphone", "state": {"off": "mdi:microphone-off"}},
+      "speaker": {"default": "mdi:volume-high", "state": {"off": "mdi:volume-off"}},
+      "flip_horizontal": {"default": "mdi:flip-horizontal"},
+      "flip_vertical": {"default": "mdi:flip-vertical"}
+    }
+  }
+}
