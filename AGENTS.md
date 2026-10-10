@@ -14,8 +14,8 @@ the subset of the API this integration uses, and is the second test target.
 
 ## Files
 
-Repo layout is the one HACS expects: the integration in `custom_components/thingino_cam/`, `hacs.json`
-at the root.
+Repo layout is the one HACS expects: one integration, all of it in `custom_components/thingino_cam/`
+(including `brand/icon.png`, where HACS's brands check looks), `hacs.json` at the root.
 
 | File | What |
 |---|---|
@@ -91,6 +91,9 @@ camera. Field names come from the adapters: `package/thingino-raptor/files/agent
 - No automated tests yet (`TODO.md`).
 - Tested on a Petcube Play 1 (Ingenic T20, Raptor streamer, RTSPS) in both modes, and on Thinpiino (Pi Zero
   W), with Home Assistant 2026.9.
+- hassfest, as CI runs it (`.github/workflows/validate.yml`, which also runs the HACS check):
+  `podman run --rm -v "$PWD:/github/workspace:ro,Z" ghcr.io/home-assistant/hassfest` from the repo root.
+  UI strings must not contain URLs (use description placeholders).
 - To try a change, copy `custom_components/thingino_cam` into a test HA instance's `custom_components/`
   and restart HA. `python3 -m py_compile custom_components/thingino_cam/*.py` catches syntax errors.
 
@@ -99,5 +102,6 @@ camera. Field names come from the adapters: `package/thingino-raptor/files/agent
 - No `requirements` in the manifest: only what Home Assistant already ships (aiohttp, voluptuous).
 - Keep `README.md` short: what it does, how to install it, how to add a camera.
 - Outstanding work goes in `TODO.md`. Remove an item when it's done; don't leave TODOs scattered in code.
-- Bump `version` in `manifest.json` for every release.
+- Releases are GitHub releases (HACS ignores bare tags). The tag matches `version` in `manifest.json`;
+  bump it for every release.
 - Nothing about any particular network or deployment belongs here.

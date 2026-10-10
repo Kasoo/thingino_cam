@@ -2,15 +2,27 @@
 
 ## Before publishing
 
-- Choose a licence and add `LICENSE`.
-- Create the public repo and add it as a remote. Then in `manifest.json` point `documentation` at it (it
-  still points at thingino-firmware), and add `issue_tracker` and `codeowners`.
+What HACS needs (hacs.xyz "Publish" and "Include" pages, and the checks in `hacs/action`):
+
+- Choose a licence and add `LICENSE`. GitHub has to recognise it (an SPDX ID), or the HACS licence
+  check fails.
+- Create the public GitHub repo and add it as a remote. Then fill in what needs its URL:
+  - `manifest.json`: point `documentation` at it (it still points at thingino-firmware), and add
+    `issue_tracker` (`<repo>/issues`) and `codeowners` (`["@<owner>"]`). HACS requires all three.
+  - `README.md`: a My Home Assistant link that opens the repo in HACS
+    (`https://my.home-assistant.io/redirect/hacs_repository/?owner=<owner>&repository=<repo>&category=integration`).
+- On GitHub, set a description and topics (e.g. `home-assistant`, `hacs`, `thingino`, `camera`) and keep
+  issues enabled.
+- Publish a GitHub release (a tag alone isn't enough). Make the tag match `version` in `manifest.json`.
+- Check the validation workflow passes on GitHub. hassfest passes locally; the HACS check can only
+  run once the repo exists, because it reads the repo's settings.
+- To get into the HACS default list: after the above, open a PR on `hacs/default` adding the repo to
+  `integration`, in alphabetical order. Do this from a personal account, not an organisation.
 - Ask the Thingino maintainers whether they're happy with the name "Thingino Camera" (if not, rename),
   and whether they'd rather take the integration upstream.
 - Link Thinpiino from `README.md` once it has a public repo.
 - Find the oldest Home Assistant release that works and put it in `hacs.json`. It says 2026.9.0, the
   only version tested. Icons in `brand/` need a recent release.
-- Add GitHub Actions for hassfest and HACS validation.
 
 ## Testing
 
