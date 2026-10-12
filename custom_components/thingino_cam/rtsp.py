@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Any
 from urllib.parse import quote
 
 DEFAULT_PORTS = {"rtsp": 554, "rtsps": 322}
@@ -45,6 +46,16 @@ def parse_rtsp_url(url: str | None) -> StreamTarget | None:
     if not path.strip("/"):
         return None                                  # no stream name: unusable
     return StreamTarget(scheme, port or DEFAULT_PORTS[scheme], path)
+
+
+def stream_target(state: dict[str, Any] | None, configured_port: int) -> StreamTarget:
+    """Where the main stream is, from the agent's /state."""
+    streams = (state or {}).get("streams")
+    stream = streams[0] if isinstance(streams, list) and streams and isinstance(streams[0], dict) else {}
+    if target := parse_rtsp_url(stream.get("rtsp_url")):
+        return target
+    # agents without rtsp_url (e.g. thinpiino-agent before 0.2): RTSPS on the configured port
+    return StreamTarget("rtsps", configured_port, "/" + (stream.get("rtsp_endpoint") or "ch0"))
 
 
 def url_host(host: str) -> str:

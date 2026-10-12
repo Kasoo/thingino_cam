@@ -155,6 +155,40 @@
       "flip_vertical": {
         "name": "Flip vertically"
       }
+    },
+    "media_player": {
+      "speaker": {
+        "name": "Speaker"
+      }
+    }
+  },
+  "exceptions": {
+    "speaker_off": {
+      "message": "The camera's speaker is turned off. Turn it on in the camera's web UI."
+    },
+    "backchannel_unavailable": {
+      "message": "The camera doesn't accept audio for its speaker: {error}. Check that the speaker and the streamer's audio backchannel are enabled on the camera."
+    },
+    "rtsp_auth": {
+      "message": "The camera rejected the video stream login. Reconfigure the integration with the right RTSP username and password."
+    },
+    "rtsp_cert": {
+      "message": "Can't play audio: {error}."
+    },
+    "playback_failed": {
+      "message": "Playing audio on the camera failed: {error}"
+    },
+    "media_fetch_failed": {
+      "message": "Couldn't download the media: {error}"
+    },
+    "media_too_large": {
+      "message": "The media is larger than {megabytes} MB."
+    },
+    "media_too_long": {
+      "message": "The media is longer than {seconds} seconds."
+    },
+    "media_unreadable": {
+      "message": "Couldn't read the media as audio: {error}"
     }
   }
 }

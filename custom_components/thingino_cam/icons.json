@@ -1,6 +1,7 @@
 {
   "entity": {
     "binary_sensor": {"event_stream": {"default": "mdi:lan-connect"}},
+    "media_player": {"speaker": {"default": "mdi:speaker"}},
     "number": {
       "brightness": {"default": "mdi:brightness-6"},
       "contrast": {"default": "mdi:contrast-box"},

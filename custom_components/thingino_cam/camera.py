@@ -18,7 +18,7 @@ from .api import AgentError
 from .const import CONF_RTSP_PASSWORD, CONF_RTSP_PORT, CONF_RTSP_USERNAME, DEFAULT_RTSP_PORT
 from .coordinator import ThinginoCoordinator
 from .entity import ThinginoEntity, dig
-from .rtsp import StreamTarget, parse_rtsp_url, stream_url
+from .rtsp import stream_target, stream_url
 
 SNAPSHOT_CACHE_SECONDS = 60
 
@@ -46,17 +46,10 @@ class ThinginoCamera(ThinginoEntity, Camera):
         self._snapshots: dict[int, tuple[float, bytes]] = {}
         self._snapshot_locks: dict[int, asyncio.Lock] = {0: asyncio.Lock(), 1: asyncio.Lock()}
 
-    def _target(self) -> StreamTarget:
-        stream = dig(self.coordinator.data.state if self.coordinator.data else None, "streams", 0)
-        stream = stream if isinstance(stream, dict) else {}
-        # scheme/port/path from the agent's rtsp_url; its host is ignored (see rtsp.py)
-        if target := parse_rtsp_url(stream.get("rtsp_url")):
-            return target
-        # agents without rtsp_url (e.g. thinpiino-agent before 0.2): RTSPS on the configured port
-        return StreamTarget("rtsps", self._rtsp_port, "/" + (stream.get("rtsp_endpoint") or "ch0"))
-
     async def stream_source(self) -> str | None:
-        return stream_url(self._target(), self._host, self._rtsp_user, self._rtsp_password)
+        # scheme/port/path from the agent's rtsp_url; its host is ignored (see rtsp.py)
+        target = stream_target(self.coordinator.data.state if self.coordinator.data else None, self._rtsp_port)
+        return stream_url(target, self._host, self._rtsp_user, self._rtsp_password)
 
     async def async_camera_image(self, width: int | None = None, height: int | None = None) -> bytes | None:
         # stream 1 is the small sub-stream; good enough for thumbnails
