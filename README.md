@@ -15,6 +15,8 @@ It talks to the camera agent built into Thingino, and gives you one device per c
 - a speaker, so text-to-speech and other media play on the camera;
 - last boot time, load average, IP address and event stream status as diagnostics (off by default).
 
+![The camera's device page in Home Assistant](https://raw.githubusercontent.com/Kasoo/thingino_cam/refs/heads/main/images/device.png)
+
 Entities only appear for what the camera says it supports. It also works with
 Thinpiino, which makes a Raspberry Pi look like a Thingino camera.
 

@@ -30,6 +30,7 @@ Repo layout is the one HACS expects: one integration, all of it in `custom_compo
 | `binary_sensor.py`, `switch.py`, `select.py`, `number.py`, `sensor.py` | One module per platform; `entity.py` is the shared base. |
 | `strings.json`, `translations/en.json` | UI text. Keep the two identical. |
 | `brand/` | Icon only, rendered from `brand-src/` (repo root): `icon.svg` (original, hand-drawn lettering; don't replace it with Thingino's logo) and `render.sh` (needs inkscape). No logo on purpose: a wordmark looked like Thingino's own, and without one HA shows the icon in its place. |
+| `images/` | README screenshots (not part of the package). `device.png` is the device page with its cards in three columns. `compose_device.py` makes it from a full-page dark-theme screenshot (`python3 -I images/compose_device.py SHOT.png images/device.png --layout 'a c / b e / d'`; the card letters are explained in its docstring; `--blur` hides parts). The README links the image by its raw GitHub URL, because HACS doesn't resolve relative paths. |
 
 ## Design
 
