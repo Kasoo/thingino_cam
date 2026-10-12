@@ -19,14 +19,17 @@ from dataclasses import dataclass, field
 
 USER, PASSWORD, REALM, NONCE = "thingino", "s3cret", "fake", "abc123"
 
-# Raptor's DESCRIBE, built as rsd_session.c builds it (H.264 main stream, L16 mic, every backchannel codec)
+# Raptor's DESCRIBE, as a Petcube (T20, Raptor, AAC mic) sent it on 2026-10-12, with a documentation
+# address in place of the camera's. The o= line really does say IP4 with an IPv6 address.
 SDP_RAPTOR = (
-    "v=0\r\no=- 1760000000000000 1 IN IP4 192.0.2.10\r\ns=Thingino\r\nt=0 0\r\na=tool:Raptor RSS\r\n"
+    "v=0\r\no=- 2273256095 1 IN IP4 2001:db8::10\r\ns=Raptor Live\r\nt=0 0\r\na=tool:Raptor RSS\r\n"
     "a=type:broadcast\r\na=control:*\r\na=range:npt=now-\r\n"
-    "m=video 0 RTP/AVP 96\r\nc=IN IP4 0.0.0.0\r\nb=AS:1024\r\na=rtpmap:96 H264/90000\r\n"
-    "a=fmtp:96 packetization-mode=1;profile-level-id=64001F;sprop-parameter-sets=Z2QAH6zZQFAFuhAAAAMAEAAAAwPI8YMZYA==,aOvjyyLA\r\n"
+    "m=video 0 RTP/AVP 96\r\nc=IN IP4 0.0.0.0\r\nb=AS:3000\r\na=rtpmap:96 H264/90000\r\n"
+    "a=fmtp:96 packetization-mode=1;profile-level-id=640028;sprop-parameter-sets=Z2QAKKw7UDwBE/LCAAADAAIAAAMAZQg=,aO48gA==\r\n"
     "a=control:video\r\na=framerate:25\r\n"
-    "m=audio 0 RTP/AVP 98\r\nc=IN IP4 0.0.0.0\r\nb=AS:256\r\na=rtpmap:98 L16/16000/1\r\na=control:audio\r\n"
+    "m=audio 0 RTP/AVP 97\r\nc=IN IP4 0.0.0.0\r\nb=AS:128\r\na=rtpmap:97 mpeg4-generic/16000/1\r\n"
+    "a=fmtp:97 streamtype=5;profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3;config=1408\r\n"
+    "a=control:audio\r\n"
 )
 SDP_RAPTOR_BACKCHANNEL = (
     "m=audio 0 RTP/AVP 0 8 112 113 114\r\na=control:backchannel\r\na=rtpmap:0 PCMU/8000\r\n"
@@ -135,7 +138,7 @@ class FakeRtspServer:
                 if not self._check_auth(method, url, h.get("authorization")):
                     reply("401 Unauthorized", f"WWW-Authenticate: {self._challenge()}\r\n")
                 elif method == "OPTIONS":
-                    reply("200 OK", "Public: OPTIONS, DESCRIBE, SETUP, PLAY, PAUSE, TEARDOWN, GET_PARAMETER\r\n")
+                    reply("200 OK", "Public: DESCRIBE, SETUP, PLAY, PAUSE, TEARDOWN, GET_PARAMETER, SET_PARAMETER\r\n")
                 elif method == "DESCRIBE":
                     if self.describe_status != 200:
                         reply(f"{self.describe_status} Error")

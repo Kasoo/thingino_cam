@@ -55,6 +55,7 @@ def test_parse_raptor_sdp():
     media = bc.parse_sdp(SDP_RAPTOR + SDP_RAPTOR_BACKCHANNEL)
     assert [(m.kind, m.control, m.direction) for m in media] == [
         ("video", "video", ""), ("audio", "audio", ""), ("audio", "backchannel", "sendonly")]
+    assert media[1].rtpmap == {97: ("MPEG4-GENERIC", 16000)}       # the mic, sent as AAC
     back = bc.find_backchannel(media)
     assert back.formats == [0, 8, 112, 113, 114]
     assert back.rtpmap[114] == ("L16", 16000)
