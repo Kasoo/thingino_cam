@@ -22,8 +22,11 @@ Repo layout is the one HACS expects: one integration, all of it in `custom_compo
 | `api.py` | aiohttp client: `Connection`/`build_connection` for both modes, TLS contexts and pinning, the SSE parser, error mapping. |
 | `config_flow.py` | Setup (`user` → `direct`/`webui` → `confirm_cert` → `rtsp`) and reauth. |
 | `coordinator.py` | Startup reads, the safety-net poll, the event loop. |
-| `rtsp.py` | Builds the stream URL from the agent's `rtsp_url`. |
+| `rtsp.py` | Builds the stream URL from the agent's `rtsp_url` (`stream_target`, shared by the camera and the speaker). |
 | `camera.py` | Stream source and cached snapshots. |
+| `backchannel.py` | RTSP(S) client that sends audio over the camera's backchannel. No HA imports. |
+| `audio.py` | Decodes any media to 16 and 8 kHz mono PCM with PyAV. No HA imports. |
+| `media_player.py` | The speaker: fetch, decode, play, replace or stop a clip. |
 | `binary_sensor.py`, `switch.py`, `select.py`, `number.py`, `sensor.py` | One module per platform; `entity.py` is the shared base. |
 | `strings.json`, `translations/en.json` | UI text. Keep the two identical. |
 | `brand/` | Icon and logo, rendered from `brand-src/` (repo root): `icon.svg` and `logo.svg` (original, hand-drawn lettering; don't replace them with Thingino's logo) and `render.sh` (needs inkscape). |
@@ -81,6 +84,28 @@ Repo layout is the one HACS expects: one integration, all of it in `custom_compo
   entity reports off.
 - **Capabilities.** Entities are created from `/capabilities`; anything a camera reports as unsupported
   is left out.
+- **Speaker** (`media_player`). The agent has no playback action, so audio goes over the RTSP audio
+  backchannel (ONVIF Profile T), on one connection with RTP interleaved.
+  - Flow: `DESCRIBE` with `Require: www.onvif.org/ver20/backchannel` (without the tag the offer is left out),
+    `SETUP` an audio track the camera sends, `SETUP` the backchannel, `PLAY`. Raptor refuses `PLAY` with 455
+    unless a track it sends is set up; prudynt doesn't need one. Video is never set up, so a Raptor camera
+    that offers no audio track can't play, and the error suggests turning the mic on (whether Raptor drops
+    the track when the mic is off is unverified). After a refusal, the client tries prudynt's
+    older `ANNOUNCE`/`RECORD` flow on a new connection. `OPTIONS` `Public` can't choose between them:
+    neither streamer lists `ANNOUNCE`.
+  - Codec: L16 at 16 kHz if offered (Raptor), else PCMU at 8 kHz (prudynt). `audio.py` makes both rates in
+    one decoding pass.
+  - Sending is paced at one 20 ms packet per 20 ms: Raptor stamps packets on arrival and ignores the RTP
+    timestamp, so a burst would garble the audio. The session timeout is 60 s, so a `GET_PARAMETER`
+    keepalive goes every 30 s. Clips are capped at 120 s and downloads at 10 MB.
+  - The call returns when the clip has played. A new clip cancels the one playing (which tears down
+    first), so only one session runs at a time. `TEARDOWN` always runs, also on errors and cancellation.
+  - A speaker turned off on the camera (`audio/spk-enabled`, read at play time) is an error, not switched
+    on. RTSPS trusts the system store, then the pinned agent cert if there is one. Whether stock Thingino's
+    RTSPS listener uses the agent's cert is unverified.
+  - Created only when `/capabilities` reports `audio.spk_enabled`. On the camera, the backchannel needs
+    `[rtsp] backchannel = true` and `[audio] ao_enabled` on Raptor (RTSPS on 322 on cameras built that
+    way), and `audio.spk_enabled` on prudynt (plain RTSP on 554).
 - **Entities left out on purpose:** reboot and restart-streamer buttons, speaker switch, scene brightness,
   memory and a streamer-health sensor (not what people want in HA).
 - **Entities disabled by default:** image tuning (brightness, contrast, saturation, sharpness), the
@@ -97,9 +122,12 @@ camera. Field names come from the adapters: `package/thingino-raptor/files/agent
 
 ## Testing
 
-- No automated tests yet (`TODO.md`).
+- `pytest` in a venv: `python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt`, then
+  `.venv/bin/python -m pytest`. Covered: `backchannel.py` (against `tests/fake_rtsp.py`, a fake RTSP server
+  shaped like Raptor or prudynt), the speaker entity, `rtsp.py`. Not yet: the config flow, the SSE parser
+  and the coordinator (`TODO.md`).
 - Tested on a Petcube Play 1 (Ingenic T20, Raptor streamer, RTSPS) in both modes, and on Thinpiino (Pi Zero
-  W), with Home Assistant 2026.9.
+  W), with Home Assistant 2026.9. The speaker has played TTS on the Petcube (L16 over RTSPS).
 - hassfest, as CI runs it (`.github/workflows/validate.yml`, which also runs the HACS check):
   `podman run --rm -v "$PWD:/github/workspace:ro,Z" ghcr.io/home-assistant/hassfest` from the repo root.
   UI strings must not contain URLs (use description placeholders).

@@ -12,6 +12,7 @@ It talks to the camera agent built into Thingino, and gives you one device per c
 - microphone and motion detection switches, and a privacy mode switch (off by default);
 - motion sensitivity and cooldown, and, if you enable them, image settings and flip (off by default);
 - day/night mode;
+- a speaker, so text-to-speech and other media play on the camera;
 - last boot time, load average, IP address and event stream status as diagnostics (off by default).
 
 Entities only appear for what the camera says it supports. It also works with
@@ -55,5 +56,8 @@ the real one under Streamer → Streamer config.
   each request costs the camera noticeable CPU. Changes made in the camera's web UI can take that long
   to show.
 - Snapshots are cached for 60 seconds, so dashboards don't load the camera.
+- The speaker needs the camera's speaker and its streamer's audio backchannel turned on. Sound quality
+  depends on the streamer: Raptor takes 16 kHz audio, prudynt only telephone-quality 8 kHz. Clips are
+  limited to 2 minutes.
 - If the camera is reflashed and its key or certificate changes, Home Assistant asks you to
   re-authenticate.
