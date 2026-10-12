@@ -42,5 +42,47 @@ What HACS needs (hacs.xyz "Publish" and "Include" pages, and the checks in `hacs
 ## Features
 
 - An `update` entity (`/actions/firmware/install`).
+- A speaker `media_player` (`play_media` and announce, so TTS works), sending audio over the camera's RTSP
+  audio backchannel. The agent API has no playback action, so this means writing an RTSP client in the
+  integration. Roughly 500 lines plus 250 of tests; the risk is camera-side behaviour, not the code.
+  - **Raptor** (`rsd`, from its source):
+    - It is offered in `DESCRIBE` only when the request carries `Require: www.onvif.org/ver20/backchannel`
+      and `[rtsp] backchannel = true` (the `[audio] ao_enabled` speaker setting must be on too).
+    - The offer is a `sendonly` audio track (`control:backchannel`) with PCMU, PCMA, Opus, AAC and L16
+      (16 kHz, so no companding).
+    - Flow: `DESCRIBE`, `SETUP` a track the camera sends (audio is cheap), `SETUP` the backchannel, `PLAY`,
+      then RTP over TCP interleaved. `PLAY` is refused with 455 unless a sending track was set up.
+    - The server stamps packets on arrival and ignores the RTP timestamp, so the client must pace 20 ms
+      packets in real time.
+    - RTSPS only on cameras built that way: TLS, Digest auth, port 322.
+  - **prudynt** (from its source):
+    - The backchannel is offered under the same `Require` tag, with `control:track0`, PCMU and PCMA (AAC and
+      Opus only if built in). There is no L16.
+    - It also accepts an older flow, `ANNOUNCE` then `SETUP track0` then `RECORD`, which needs no receive
+      track.
+    - It is enabled by `audio.spk_enabled` (default true).
+    - RTSP is plain only (built with `NO_OPENSSL`), on port 554, with Digest (default) or Basic auth. TCP
+      interleaved and UDP both work.
+    - The client therefore has to handle both `rtsp` and `rtsps`, and both flows.
+  - **Thinpiino** has no audio, so it gets no entity. Create the entity only when the camera reports the
+    `audio.spk_enabled` capability, and report a clear error when the camera doesn't offer a backchannel.
+  - **Audio conversion:** decode and resample to mono 16 kHz with PyAV (it ships with HA's `stream`
+    integration), or the `ffmpeg` integration. Python 3.14 has no `audioop`, so µ-law is PyAV's `pcm_mulaw`
+    or a small table.
+  - **Checked on a Raptor camera (silent `DESCRIBE`, 2026-10-12):**
+    - It offers the backchannel with PCMU, PCMA, Opus (48 kHz), AAC and L16 (16 kHz), plus an audio
+      receive track (the mic was on).
+    - RTSPS verifies against the public wildcard cert with default TLS settings, so no pinning is needed there.
+    - Connect plus TLS handshake took 0.5 s and `DESCRIBE` 17 ms, so latency is not a worry.
+    - Digest auth has no `qop` (RFC 2069 style), whereas prudynt uses `qop="auth"`. The client must handle both.
+    - `OPTIONS` lists `DESCRIBE, SETUP, PLAY, PAUSE, TEARDOWN, GET_PARAMETER, SET_PARAMETER`, so this camera only
+      supports the `Require` tag + `PLAY` flow, not `ANNOUNCE`/`RECORD`.
+    - Playback works: a 1.5 s L16 tone at 10% amplitude was audible on the camera speaker almost immediately.
+      `SETUP`, `SETUP` and `PLAY` took about 40 ms in total and the sender kept 20 ms pacing with no overrun.
+      While playing, the camera sends its audio track back (about 12 KB/s), so keep sessions short.
+  - **Still unknown:**
+    - whether the camera offers an audio receive track when its mic is off;
+    - whether a self-signed RTSPS cert (stock Thingino) can reuse the pinned agent cert;
+    - audio quality over longer clips (dropouts at the speaker ring), which a short tone doesn't test.
 - Recording controls and send2 toggles, for cameras that support them.
 - Zeroconf discovery, once cameras (Thingino or Thinpiino) advertise themselves.
