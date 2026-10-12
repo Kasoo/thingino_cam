@@ -1,4 +1,4 @@
-"""Sensors: running day/night mode, scene brightness (pushed samples), system diagnostics."""
+"""Sensors: running day/night mode (pushed samples), last boot time, load average, IP address."""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -13,7 +13,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfInformation
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
@@ -25,6 +25,7 @@ from .entity import ThinginoEntity, dig
 @dataclass(frozen=True, kw_only=True)
 class ThinginoSensorDescription(SensorEntityDescription):
     value: Callable[[CameraData], Any]
+    uses_health: bool = False
 
 
 def _boot_time(d: CameraData) -> datetime | None:
@@ -40,25 +41,19 @@ DESCRIPTIONS = (
     ThinginoSensorDescription(
         key="daynight_running", device_class=SensorDeviceClass.ENUM, options=["day", "night"],
         value=lambda d: d.sample.get("daynight_mode") or dig(d.state, "daynight", "running_mode")),
-    # the ISP's average luma, 0-255; a proxy for scene brightness (also drives auto day/night)
-    ThinginoSensorDescription(
-        key="scene_brightness", state_class=SensorStateClass.MEASUREMENT,
-        value=lambda d: d.sample.get("ae_luma")),
     ThinginoSensorDescription(
         key="boot_time", device_class=SensorDeviceClass.TIMESTAMP,
-        entity_category=EntityCategory.DIAGNOSTIC, value=_boot_time),
+        entity_category=EntityCategory.DIAGNOSTIC, entity_registry_enabled_default=False,
+        uses_health=True, value=_boot_time),
+    # 1-minute load average; it counts tasks in uninterruptible sleep, so it reads high on these
+    # cameras even while the CPU is mostly idle
     ThinginoSensorDescription(
         key="load_average", state_class=SensorStateClass.MEASUREMENT, suggested_display_precision=2,
-        entity_category=EntityCategory.DIAGNOSTIC, value=lambda d: d.system.get("load_average_1m")),
-    ThinginoSensorDescription(
-        key="memory_available", device_class=SensorDeviceClass.DATA_SIZE,
-        native_unit_of_measurement=UnitOfInformation.KIBIBYTES,
-        suggested_unit_of_measurement=UnitOfInformation.MEBIBYTES, suggested_display_precision=1,
-        state_class=SensorStateClass.MEASUREMENT, entity_category=EntityCategory.DIAGNOSTIC,
-        value=lambda d: d.system.get("memory_available_kib")),
+        entity_category=EntityCategory.DIAGNOSTIC, entity_registry_enabled_default=False,
+        uses_health=True, value=lambda d: d.system.get("load_average_1m")),
     ThinginoSensorDescription(
         key="ip_address", entity_category=EntityCategory.DIAGNOSTIC, entity_registry_enabled_default=False,
-        value=lambda d: d.network.get("ip")),
+        uses_health=True, value=lambda d: d.network.get("ip")),
 )
 
 
@@ -73,6 +68,10 @@ class ThinginoSensor(ThinginoEntity, SensorEntity):
     def __init__(self, coordinator: ThinginoCoordinator, desc: ThinginoSensorDescription) -> None:
         super().__init__(coordinator, desc.key)
         self.entity_description = desc
+
+    @property
+    def uses_health(self) -> bool:
+        return self.entity_description.uses_health
 
     @property
     def native_value(self) -> Any:

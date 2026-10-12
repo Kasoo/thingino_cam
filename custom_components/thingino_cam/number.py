@@ -26,7 +26,7 @@ def _image(key: str) -> ThinginoNumberDescription:
     return ThinginoNumberDescription(
         key=key, path=f"image/{key}", field=key, capability=("image", key), default=128,
         native_min_value=0, native_max_value=255, native_step=1, mode=NumberMode.SLIDER,
-        entity_category=EntityCategory.CONFIG)
+        entity_category=EntityCategory.CONFIG, entity_registry_enabled_default=False)
 
 
 DESCRIPTIONS = (

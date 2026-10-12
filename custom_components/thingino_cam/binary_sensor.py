@@ -1,4 +1,4 @@
-"""Binary sensors: motion (pushed over SSE), plus streamer/health diagnostics."""
+"""Binary sensors: motion (pushed over SSE) and the event stream connection."""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -27,10 +27,6 @@ DESCRIPTIONS = (
     ThinginoBinaryDescription(
         key="motion", device_class=BinarySensorDeviceClass.MOTION,
         value=lambda d, c: d.motion),
-    ThinginoBinaryDescription(
-        key="streamer_problem", device_class=BinarySensorDeviceClass.PROBLEM,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value=lambda d, c: not d.system.get("streamer_running")),
     ThinginoBinaryDescription(
         key="event_stream", device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC, entity_registry_enabled_default=False,

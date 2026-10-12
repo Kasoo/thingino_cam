@@ -25,15 +25,16 @@ DESCRIPTIONS = (
     ThinginoSwitchDescription(key="motion_detection", path="motion/enabled", field="enabled",
                               capability=("motion", "enabled")),
     ThinginoSwitchDescription(key="privacy", path="privacy/enabled", field="enabled",
-                              capability=("privacy", "enabled")),
+                              capability=("privacy", "enabled"),
+                              entity_registry_enabled_default=False),
     ThinginoSwitchDescription(key="microphone", path="audio/mic-enabled", field="mic_enabled",
                               capability=("audio", "mic_enabled")),
-    ThinginoSwitchDescription(key="speaker", path="audio/spk-enabled", field="spk_enabled",
-                              capability=("audio", "spk_enabled")),
     ThinginoSwitchDescription(key="flip_horizontal", path="image/hflip", field="hflip",
-                              capability=("image", "hflip"), entity_category=EntityCategory.CONFIG),
+                              capability=("image", "hflip"), entity_category=EntityCategory.CONFIG,
+                              entity_registry_enabled_default=False),
     ThinginoSwitchDescription(key="flip_vertical", path="image/vflip", field="vflip",
-                              capability=("image", "vflip"), entity_category=EntityCategory.CONFIG),
+                              capability=("image", "vflip"), entity_category=EntityCategory.CONFIG,
+                              entity_registry_enabled_default=False),
 )
 
 

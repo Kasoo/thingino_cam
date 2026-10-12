@@ -13,6 +13,9 @@ from .rtsp import url_host
 
 class ThinginoEntity(CoordinatorEntity[ThinginoCoordinator]):
     _attr_has_entity_name = True
+    # True for entities read from /health data (system, network); the coordinator polls /health only
+    # while at least one such entity exists, and disabled entities are never created.
+    uses_health = False
 
     def __init__(self, coordinator: ThinginoCoordinator, key: str) -> None:
         super().__init__(coordinator)
@@ -27,6 +30,12 @@ class ThinginoEntity(CoordinatorEntity[ThinginoCoordinator]):
             name=coordinator.config_entry.title,
             configuration_url=f"https://{url_host(coordinator.config_entry.data['host'])}/",
         )
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if self.uses_health:
+            self.coordinator.health_users.add(self.entity_id)
+            self.async_on_remove(lambda: self.coordinator.health_users.discard(self.entity_id))
 
     @property
     def available(self) -> bool:

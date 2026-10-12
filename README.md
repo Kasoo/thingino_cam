@@ -9,10 +9,10 @@ It talks to the camera agent built into Thingino, and gives you one device per c
 
 - live video (RTSP or RTSPS) and snapshots;
 - motion, pushed from the camera as it happens;
-- privacy mode, microphone and speaker switches;
-- image settings, flip, motion sensitivity;
+- microphone and motion detection switches, and a privacy mode switch (off by default);
+- motion sensitivity and cooldown, and, if you enable them, image settings and flip (off by default);
 - day/night mode;
-- reboot and streamer restart buttons, and diagnostics.
+- last boot time, load average, IP address and event stream status as diagnostics (off by default).
 
 Entities only appear for what the camera says it supports. It also works with
 Thinpiino, which makes a Raspberry Pi look like a Thingino camera.
@@ -51,7 +51,7 @@ the real one under Streamer → Streamer config.
 
 ## Notes
 
-- Motion and brightness arrive as events. Everything else is polled only every 15 minutes, because
+- Motion and day/night changes arrive as events. Everything else is polled only every 15 minutes, because
   each request costs the camera noticeable CPU. Changes made in the camera's web UI can take that long
   to show.
 - Snapshots are cached for 60 seconds, so dashboards don't load the camera.

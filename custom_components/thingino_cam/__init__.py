@@ -2,7 +2,7 @@
 (API key) or directly to the agent's TLS listener (token, optional mTLS); see config_flow.py.
 
 One config entry = one camera = one HA device: RTSPS camera, motion (pushed over SSE), privacy,
-audio, image tuning, day/night, diagnostics. Design: AGENTS.md at the repo root.
+audio, image tuning, day/night. Design: AGENTS.md at the repo root.
 """
 from __future__ import annotations
 
@@ -17,8 +17,8 @@ from .const import CONF_MODE, MODE_DIRECT
 from .coordinator import ThinginoCoordinator
 
 PLATFORMS: list[Platform] = [
-    Platform.BINARY_SENSOR, Platform.BUTTON, Platform.CAMERA, Platform.NUMBER, Platform.SELECT,
-    Platform.SENSOR, Platform.SWITCH,
+    Platform.BINARY_SENSOR, Platform.CAMERA, Platform.NUMBER, Platform.SELECT, Platform.SENSOR,
+    Platform.SWITCH,
 ]
 
 type ThinginoConfigEntry = ConfigEntry[ThinginoCoordinator]

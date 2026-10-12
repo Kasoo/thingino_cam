@@ -24,7 +24,7 @@ Repo layout is the one HACS expects: one integration, all of it in `custom_compo
 | `coordinator.py` | Startup reads, the safety-net poll, the event loop. |
 | `rtsp.py` | Builds the stream URL from the agent's `rtsp_url`. |
 | `camera.py` | Stream source and cached snapshots. |
-| `binary_sensor.py`, `switch.py`, `select.py`, `number.py`, `sensor.py`, `button.py` | One module per platform; `entity.py` is the shared base. |
+| `binary_sensor.py`, `switch.py`, `select.py`, `number.py`, `sensor.py` | One module per platform; `entity.py` is the shared base. |
 | `strings.json`, `translations/en.json` | UI text. Keep the two identical. |
 | `brand/` | Icon and logo, rendered from `brand-src/` (repo root): `icon.svg` and `logo.svg` (original, hand-drawn lettering; don't replace them with Thingino's logo) and `render.sh` (needs inkscape). |
 
@@ -58,17 +58,20 @@ Repo layout is the one HACS expects: one integration, all of it in `custom_compo
 - **Reads are event-driven; polling is a 15-minute safety net.** Every agent call runs forking shell
   adapters on a single-core MIPS SoC. Measured on a T20: `/state` 2-10 s, `/config` ~4.5 s, `/health`
   ~1 s, a single setting 0.2-0.3 s. Polling six endpoints every 60 s drove the camera to 0% idle.
-  - At startup: `/state`, `/config`, the settings `/config` lacks (`audio/mic-enabled`, `audio/spk-enabled`,
-    `motion/sensitivity`, `motion/cooldown-time`) and `/health`, **one at a time**.
-  - Then every 15 min: `/health` and `/config` (catches web UI edits), one at a time.
+  - At startup: `/state`, `/config` and the settings `/config` lacks (`audio/mic-enabled`,
+    `motion/sensitivity`, `motion/cooldown-time`), **one at a time**.
+  - Then every 15 min: `/config` (catches web UI edits), plus `/health`, one at a time.
+  - `/health` is only polled while an enabled entity needs it (`uses_health` on the entity: last boot,
+    load average, IP address, which are all disabled by default). Each such entity registers in
+    `coordinator.health_users` when added to HA, so disabled ones never count. Until `/health` has been
+    read, `CameraData.system`/`network` fall back to the startup `/state`, which carries the same blocks.
 - **Events.** A background task holds `GET /events` (SSE) and reconnects every 15 s.
   - `motion.started`/`motion.stopped` drive the motion sensor directly.
-  - `sensor.sample` feeds scene brightness and the day/night state.
+  - `sensor.sample` feeds the day/night state.
   - `state.changed` (unless it only lists `motion.active`), `streamer.restarted` and `health.warning`
-    trigger a `/health` re-read.
+    trigger a `/health` re-read, again only while a `uses_health` entity is enabled.
 - **Writes:** `PATCH /settings/<path>` with `{field: value}` (URLs use dashes, JSON underscores), mirrored
-  into the cache without a re-read. Day/night: `POST /actions/daynight {"mode": ...}`. Buttons:
-  `POST /actions/reboot`, `/actions/streamer/restart`.
+  into the cache without a re-read. Day/night: `POST /actions/daynight {"mode": ...}`.
 - **Video.** The URL comes from `/state` `streams[0].rtsp_url`, but only its scheme, port and path are
   used; the host is always the configured one. Upstream Raptor omits brackets around IPv6 addresses and
   prudynt reports `127.0.0.1`, so keep tolerating both. Agents without `rtsp_url` get RTSPS on the
@@ -78,6 +81,12 @@ Repo layout is the one HACS expects: one integration, all of it in `custom_compo
   entity reports off.
 - **Capabilities.** Entities are created from `/capabilities`; anything a camera reports as unsupported
   is left out.
+- **Entities left out on purpose:** reboot and restart-streamer buttons, speaker switch, scene brightness,
+  memory and a streamer-health sensor (not what people want in HA).
+- **Entities disabled by default:** image tuning (brightness, contrast, saturation, sharpness), the
+  privacy mode and flip switches, and the diagnostics (last boot, load average, IP address, event
+  stream). Load average is the 1-minute `/proc/loadavg`, which counts uninterruptible-sleep tasks and so
+  reads 4-5 on a mostly idle T20; the agent reports no CPU percentage.
 - Repeat connection failures are logged at debug level only.
 
 ## API reference

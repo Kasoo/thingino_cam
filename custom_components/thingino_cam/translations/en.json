@@ -87,19 +87,8 @@
       "motion": {
         "name": "Motion"
       },
-      "streamer_problem": {
-        "name": "Streamer"
-      },
       "event_stream": {
         "name": "Event stream"
-      }
-    },
-    "button": {
-      "reboot": {
-        "name": "Reboot"
-      },
-      "restart_streamer": {
-        "name": "Restart streamer"
       }
     },
     "number": {
@@ -140,17 +129,11 @@
           "night": "Night"
         }
       },
-      "scene_brightness": {
-        "name": "Scene brightness"
-      },
       "boot_time": {
         "name": "Last boot"
       },
       "load_average": {
         "name": "Load average"
-      },
-      "memory_available": {
-        "name": "Memory available"
       },
       "ip_address": {
         "name": "IP address"
@@ -165,9 +148,6 @@
       },
       "microphone": {
         "name": "Microphone"
-      },
-      "speaker": {
-        "name": "Speaker"
       },
       "flip_horizontal": {
         "name": "Flip horizontally"

@@ -2,10 +2,11 @@
 
 Load matters: every agent call runs shell adapters on the camera's single core, and six concurrent
 calls a minute saturated it (snapshots and /state timed out). So: everything is read once at
-startup, one call at a time; afterwards motion, day/night and scene brightness arrive over /events,
-writes are mirrored into the cache from their responses, and only cheap /health (plus /config,
-for edits made in the camera's web UI) is polled every SCAN_INTERVAL_SECONDS or on a state.changed
-event that the stream does not already cover.
+startup, one call at a time; afterwards motion and day/night arrive over /events,
+writes are mirrored into the cache from their responses, and only /config (for edits made in the
+camera's web UI) is polled every SCAN_INTERVAL_SECONDS. /health is polled too, and re-read on a
+state.changed event that the stream does not already cover, but only while an entity that uses it
+is enabled (ThinginoEntity.uses_health).
 """
 from __future__ import annotations
 
@@ -29,7 +30,6 @@ _LOG = logging.getLogger(__name__)
 # Settings that GET /config does not include: (setting path, capability path) pairs, read one by one.
 EXTRA_SETTINGS = (
     ("audio/mic-enabled", ("audio", "mic_enabled")),
-    ("audio/spk-enabled", ("audio", "spk_enabled")),
     ("motion/sensitivity", ("motion", "sensitivity")),
     ("motion/cooldown-time", ("motion", "cooldown_time")),
 )
@@ -43,7 +43,7 @@ EVENT_COVERED_PATHS = {"motion.active"}
 class CameraData:
     state: dict[str, Any]          # read once at startup (stream endpoints, initial motion/day-night)
     config: dict[str, Any]
-    health: dict[str, Any] = field(default_factory=dict)    # polled: system, network, streaming
+    health: dict[str, Any] = field(default_factory=dict)    # polled only while an entity uses it
     # setting path -> resource, for EXTRA_SETTINGS
     extra: dict[str, dict[str, Any]] = field(default_factory=dict)
     # from push events, not the poll
@@ -75,6 +75,7 @@ class ThinginoCoordinator(DataUpdateCoordinator[CameraData]):
         self.device = device
         self.capabilities = capabilities
         self.events_connected = False
+        self.health_users: set[str] = set()     # entity ids of enabled entities with uses_health
         self._events_task: asyncio.Task | None = None
         self._extra_paths = [path for path, cap in EXTRA_SETTINGS if _has(capabilities, cap)]
 
@@ -90,10 +91,10 @@ class ThinginoCoordinator(DataUpdateCoordinator[CameraData]):
                 state = await self.agent.state()
                 config = await self.agent.config()
                 extra = {path: await self.agent.get_setting(path) for path in self._extra_paths}
-                health = await self.agent.health()
-                return CameraData(state=state, config=config, health=health, extra=extra,
+                return CameraData(state=state, config=config, extra=extra,
                                   motion=bool((state.get("motion") or {}).get("active")))
-            old.health = await self.agent.health()
+            if self.health_users:
+                old.health = await self.agent.health()
             old.config = await self.agent.config()
         except AgentAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
@@ -102,7 +103,7 @@ class ThinginoCoordinator(DataUpdateCoordinator[CameraData]):
         return old
 
     async def _async_refresh_health(self) -> None:
-        if self.data is None:
+        if self.data is None or not self.health_users:
             return
         try:
             self.data.health = await self.agent.health()
@@ -142,13 +143,6 @@ class ThinginoCoordinator(DataUpdateCoordinator[CameraData]):
         if self.data is not None:
             self.data.config.setdefault("daynight", {})["force_mode"] = None if mode == "auto" else mode
             self.async_update_listeners()
-
-    async def async_action(self, name: str, body: dict[str, Any] | None = None) -> None:
-        """Fire-and-forget actions (reboot, streamer restart): the event stream reports the effects."""
-        try:
-            await self.agent.action(name, body)
-        except AgentError as err:
-            raise UpdateFailed(f"action {name}: {err}") from err
 
     # --- push events --------------------------------------------------------------------------
     def start_events(self) -> None:
