@@ -6,6 +6,7 @@ import struct
 import pytest
 
 from custom_components.thingino_cam import backchannel as bc
+from custom_components.thingino_cam.api import pinned_context
 from fake_rtsp import (
     PASSWORD, SDP_PRUDYNT, SDP_PRUDYNT_BACKCHANNEL, SDP_RAPTOR, SDP_RAPTOR_BACKCHANNEL, USER, FakeRtspServer,
 )
@@ -264,30 +265,6 @@ async def test_unreachable():
         await bc.play(bc.BackchannelTarget("127.0.0.1", port, "/ch0", USER, PASSWORD), b"", b"")
 
 
-@pytest.fixture
-def self_signed(tmp_path):
-    """(server context, PEM) for a self-signed cert named camera.local, as stock Thingino has."""
-    import datetime
-    from cryptography import x509
-    from cryptography.hazmat.primitives import hashes, serialization
-    from cryptography.hazmat.primitives.asymmetric import ec
-    from cryptography.x509.oid import NameOID
-
-    key = ec.generate_private_key(ec.SECP256R1())
-    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "camera.local")])
-    now = datetime.datetime.now(datetime.UTC)
-    cert = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(key.public_key())
-            .serial_number(1).not_valid_before(now).not_valid_after(now + datetime.timedelta(days=1))
-            .sign(key, hashes.SHA256()))
-    pem = cert.public_bytes(serialization.Encoding.PEM).decode()
-    (tmp_path / "cert.pem").write_text(pem)
-    (tmp_path / "key.pem").write_bytes(key.private_bytes(
-        serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()))
-    ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    ctx.load_cert_chain(tmp_path / "cert.pem", tmp_path / "key.pem")
-    return ctx, pem
-
-
 async def test_rtsps_untrusted_cert(self_signed):
     server = await FakeRtspServer().start(self_signed[0])
     tls = bc.BackchannelTarget("127.0.0.1", server.port, "/ch0", USER, PASSWORD, tls=ssl.create_default_context())
@@ -298,8 +275,7 @@ async def test_rtsps_untrusted_cert(self_signed):
 
 async def test_rtsps_pinned_cert(self_signed):
     server = await FakeRtspServer().start(self_signed[0])
-    pinned = ssl.create_default_context(cadata=self_signed[1])
-    pinned.check_hostname = False
+    pinned = pinned_context(self_signed[1])
     target = bc.BackchannelTarget("127.0.0.1", server.port, "/ch0", USER, PASSWORD,
                                   tls=ssl.create_default_context(), pinned_tls=pinned)
     assert target.url.startswith("rtsps://")

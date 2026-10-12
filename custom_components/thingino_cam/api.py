@@ -70,16 +70,22 @@ class Connection:
     ssl_context: ssl.SSLContext
 
 
+def pinned_context(pem: str) -> ssl.SSLContext:
+    """Trust exactly the camera's own certificate (self-signed, CN <hostname>.local), whatever name HA uses
+    to reach it. Given cadata, create_default_context loads no system CAs, so no public cert passes
+    without the name check. Blocking."""
+    ctx = ssl.create_default_context(cadata=pem)
+    ctx.check_hostname = False
+    return ctx
+
+
 def build_connection(data: Mapping[str, Any], config_path: Callable[[str], str]) -> Connection:
     """Connection for a config entry's data. Blocking (may read cert files): call from an executor.
 
     config_path resolves cert/key paths relative to the HA config dir (hass.config.path)."""
     host = url_host(data[CONF_HOST])
     if pem := data.get(CONF_SERVER_CERT):
-        # pinned: trust exactly the camera's own certificate (self-signed, CN <hostname>.local), whatever
-        # name HA uses to reach it
-        ctx = ssl.create_default_context(cadata=pem)
-        ctx.check_hostname = False
+        ctx = pinned_context(pem)
     else:
         ctx = create_client_context()
     if data.get(CONF_MODE, MODE_DIRECT) == MODE_WEBUI:

@@ -29,7 +29,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util.ssl import create_client_context
 
 from . import audio, backchannel
-from .api import AgentError
+from .api import AgentError, pinned_context
 from .const import (
     CONF_RTSP_PASSWORD, CONF_RTSP_PORT, CONF_RTSP_USERNAME, CONF_SERVER_CERT, DEFAULT_RTSP_PORT, DOMAIN,
 )
@@ -52,14 +52,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry,
 def _error(key: str, **placeholders: str) -> HomeAssistantError:
     return HomeAssistantError(translation_domain=DOMAIN, translation_key=key,
                               translation_placeholders=placeholders or None)
-
-
-def _pinned_context(pem: str) -> ssl.SSLContext:
-    """Trust exactly the camera's own certificate, whatever name it carries. Blocking."""
-    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    ctx.load_verify_locations(cadata=pem)
-    ctx.check_hostname = False
-    return ctx
 
 
 class ThinginoSpeaker(ThinginoEntity, MediaPlayerEntity):
@@ -147,7 +139,7 @@ class ThinginoSpeaker(ThinginoEntity, MediaPlayerEntity):
         if target.scheme == "rtsps":
             tls = create_client_context()
             if (pem := data.get(CONF_SERVER_CERT)) and self._pinned is None:
-                self._pinned = await self.hass.async_add_executor_job(_pinned_context, pem)
+                self._pinned = await self.hass.async_add_executor_job(pinned_context, pem)
             pinned = self._pinned
         return backchannel.BackchannelTarget(
             host=data["host"], port=target.port, path=target.path, username=data[CONF_RTSP_USERNAME],
