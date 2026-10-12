@@ -19,7 +19,7 @@ Thinpiino, which makes a Raspberry Pi look like a Thingino camera.
 
 ## Install
 
-With [HACS](https://hacs.xyz): add this repository as a custom repository (type **Integration**),
+With [HACS](https://hacs.xyz): [open this repository in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Kasoo&repository=thingino_cam&category=integration),
 install **Thingino Camera**, and restart Home Assistant.
 
 By hand: copy `custom_components/thingino_cam` into your Home Assistant `config/custom_components/`
