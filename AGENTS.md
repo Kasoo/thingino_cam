@@ -29,7 +29,7 @@ Repo layout is the one HACS expects: one integration, all of it in `custom_compo
 | `media_player.py` | The speaker: fetch, decode, play, replace or stop a clip. |
 | `binary_sensor.py`, `switch.py`, `select.py`, `number.py`, `sensor.py` | One module per platform; `entity.py` is the shared base. |
 | `strings.json`, `translations/en.json` | UI text. Keep the two identical. |
-| `brand/` | Icon and logo, rendered from `brand-src/` (repo root): `icon.svg` and `logo.svg` (original, hand-drawn lettering; don't replace them with Thingino's logo) and `render.sh` (needs inkscape). |
+| `brand/` | Icon only, rendered from `brand-src/` (repo root): `icon.svg` (original, hand-drawn lettering; don't replace it with Thingino's logo) and `render.sh` (needs inkscape). No logo on purpose: a wordmark looked like Thingino's own, and without one HA shows the icon in its place. |
 
 ## Design
 

@@ -3,7 +3,7 @@
 An **unofficial** Home Assistant integration for cameras running [Thingino](https://thingino.com)
 firmware. It is not part of the Thingino project, and is not made, endorsed or supported by it.
 "Thingino" and any other product names here belong to their owners, and are used only to say which
-devices this works with. The icon and logo are original artwork, not Thingino's.
+devices this works with. The icon is original artwork, not Thingino's.
 
 It talks to the camera agent built into Thingino, and gives you one device per camera with:
 
