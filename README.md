@@ -30,10 +30,8 @@ and restart.
 
 ## Add a camera
 
-Add the **Thingino Camera** integration and pick one of two ways to connect.
-
-**Directly to the camera agent** (recommended). The agent only listens locally at first, so log in to
-the camera over SSH once and run:
+Add the **Thingino Camera** integration. It connects directly to the camera agent. The agent only listens
+locally at first, so log in to the camera over SSH once and run:
 
 ```sh
 jct /etc/thingino.json set agent.listen "::"
@@ -45,9 +43,6 @@ jct /etc/thingino.json get agent.token
 Enter the camera's address and the token that last command prints. Home Assistant then shows the
 fingerprint of the camera's self-signed certificate. Confirm it, and only that certificate is trusted
 from then on. A client certificate (mutual TLS) is optional, and only works with firmware that supports it.
-
-**Through the web UI**, if you can't use SSH. Enter the API key from the camera's web UI (Web Interface
-settings, API Access). This needs newer firmware than the direct mode; setup tells you if yours is too old.
 
 Last, enter the video stream login. Thingino's default is `thingino` / `thingino`. The web UI shows
 the real one under Streamer → Streamer config.

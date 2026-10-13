@@ -32,6 +32,8 @@ DEFAULT_RTSP_PASSWORD = "thingino"
 # minimum is a build date. This is upstream master e68b5e8, which does NOT have the fixes yet (TODO.md).
 # Until they are released, the setup probes (key accepted in the header, a hello event) are the real gate.
 MIN_WEBUI_BUILD_DATE = date(2026, 10, 7)
+# Whether setup offers web UI mode. Off until the fixes above are released; existing web UI entries keep working.
+WEBUI_MODE_ENABLED = False
 # how long setup waits for the agent's "hello" event through the web UI proxy
 EVENT_PROBE_SECONDS = 15
 

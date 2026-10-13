@@ -34,6 +34,13 @@ def auto_enable(enable_custom_integrations):
 
 
 @pytest.fixture(autouse=True)
+def webui_enabled():
+    """Setup offers web UI mode only while the flag is on (test_web_ui_mode_is_hidden turns it off)."""
+    with patch(f"{FLOW}.WEBUI_MODE_ENABLED", True):
+        yield
+
+
+@pytest.fixture(autouse=True)
 def entry_setup():
     """Creating or reloading an entry sets it up; the integration itself is tested elsewhere."""
     with patch("custom_components.thingino_cam.async_setup_entry", return_value=True) as mock:
@@ -64,6 +71,12 @@ async def start(hass, mode: str = MODE_DIRECT):
 
 async def submit(hass, result, user_input):
     return await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
+
+
+async def test_web_ui_mode_is_hidden_while_disabled(hass):
+    with patch(f"{FLOW}.WEBUI_MODE_ENABLED", False):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    assert result["type"] is FlowResultType.FORM and result["step_id"] == MODE_DIRECT
 
 
 async def test_direct_public_cert(hass):

@@ -56,6 +56,7 @@ from .const import (
     MIN_WEBUI_BUILD_DATE,
     MODE_DIRECT,
     MODE_WEBUI,
+    WEBUI_MODE_ENABLED,
 )
 
 _LOG = logging.getLogger(__name__)
@@ -126,6 +127,8 @@ class ThinginoCamConfigFlow(ConfigFlow, domain=DOMAIN):
 
     # --- entry points ---------------------------------------------------------------------------
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if not WEBUI_MODE_ENABLED:
+            return await self.async_step_direct()
         return self.async_show_menu(step_id="user", menu_options=[MODE_DIRECT, MODE_WEBUI])
 
     async def async_step_webui(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:

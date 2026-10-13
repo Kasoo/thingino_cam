@@ -45,8 +45,9 @@ Repo layout is the one HACS expects: one integration, all of it in `custom_compo
   Direct is preferred: mutual TLS is upstream `security.md`'s preferred trust model, and the web UI API
   key can do anything on the camera. Web UI mode exists because stock firmware ships the agent
   local-only and exposing it needs a shell.
-- **Web UI mode needs two Thingino fixes** not yet released: uhttpd passing `X-API-Key` to CGI, and
-  `agent.cgi` forwarding the event-stream path. `MIN_WEBUI_BUILD_DATE` in `const.py` is checked against
+- **Web UI mode is switched off** (`WEBUI_MODE_ENABLED` in `const.py`): setup goes straight to direct mode.
+  Existing web UI entries, their reauth and the code stay. It needs two Thingino fixes not yet released: uhttpd passing `X-API-Key` to CGI, and
+  `agent.cgi` forwarding the event-stream path. `MIN_WEBUI_BUILD_DATE` is checked against
   the build date the camera reports (Thingino has no version numbers). Setup also checks that the key is
   accepted in the header and that a `hello` event arrives within `EVENT_PROBE_SECONDS`; those probes are
   the real gate until the minimum date can be bumped.

@@ -33,9 +33,10 @@ What HACS needs (hacs.xyz "Publish" and "Include" pages, and the checks in `hacs
 
 ## Waiting on Thingino
 
-- Bump `MIN_WEBUI_BUILD_DATE` in `const.py` (and the README if needed) once both web UI fixes are in a
-  release: uhttpd passing `X-API-Key` to CGI, and `agent.cgi` forwarding the event-stream path. Link the
-  upstream PRs here once they're open.
+- Web UI mode (`/x/agent.cgi`, no SSH needed) is switched off until both fixes are in a Thingino release:
+  uhttpd passing `X-API-Key` to CGI, and `agent.cgi` forwarding the event-stream path. Then set
+  `MIN_WEBUI_BUILD_DATE` in `const.py` to that release, set `WEBUI_MODE_ENABLED`, and put the "through the
+  web UI" paragraph back in the README (see git history). Link the upstream PRs here once they're open.
 - The agent doesn't report the RTSP login, so setup asks for it. If Thingino adds a way (upstream's
   `security.md` keeps media credentials separate, under a `media` scope), read it from there and keep the
   RTSP step as a fallback for older firmware.
