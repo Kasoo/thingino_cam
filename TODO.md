@@ -19,9 +19,7 @@ What HACS needs (hacs.xyz "Publish" and "Include" pages, and the checks in `hacs
 
 ## Testing
 
-- More tests (the suite is in `tests/`):
-  - the config flow: both modes, certificate pinning, `cert_name_mismatch`, reauth, v1 to v2 migration;
-  - the SSE parser and the coordinator's event handling.
+- More tests (the suite is in `tests/`): the SSE parser and the coordinator's event handling.
 - Test on more cameras. So far only a Petcube Play 1 (T20, Raptor, our mTLS build) and Thinpiino:
   - the prudynt streamer, including the speaker: from its source, the ONVIF flow works without a receive
     track and `ANNOUNCE`/`RECORD` is the fallback, but neither has been tried on a camera;

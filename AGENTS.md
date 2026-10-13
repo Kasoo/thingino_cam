@@ -125,8 +125,8 @@ camera. Field names come from the adapters: `package/thingino-raptor/files/agent
 
 - `pytest` in a venv: `python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt`, then
   `.venv/bin/python -m pytest`. Covered: `backchannel.py` (against `tests/fake_rtsp.py`, a fake RTSP server
-  shaped like Raptor or prudynt), the speaker entity, `rtsp.py`. Not yet: the config flow, the SSE parser
-  and the coordinator (`TODO.md`).
+  shaped like Raptor or prudynt), the speaker entity, `rtsp.py`, the config flow and entry migration. Not yet:
+  the SSE parser and the coordinator (`TODO.md`).
 - Tested on a Petcube Play 1 (Ingenic T20, Raptor streamer, RTSPS) in both modes, and on Thinpiino (Pi Zero
   W), with Home Assistant 2026.9. The speaker has played TTS on the Petcube (L16 over RTSPS).
 - hassfest, as CI runs it (`.github/workflows/validate.yml`, which also runs the HACS check):
